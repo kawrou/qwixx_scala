@@ -1,6 +1,6 @@
 name := "qwixx-scala"
 
-scalaVersion := "2.13.18"
+scalaVersion := "2.13.14"
 
 version := "0.1"
 
