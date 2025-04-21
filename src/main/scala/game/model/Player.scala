@@ -15,7 +15,7 @@ private object PlayerCreationError {
 case class Player(id: Int, name: String, gameCard: GameCard, penalty: Int)
 
 object Player {
-  def newPlayer(id: Int, name: String): Either[InvalidName.type, Player] = {
+  def apply(id: Int, name: String): Either[PlayerCreationError, Player] = {
     if (name.trim.isEmpty) Left(InvalidName)
     else Right(Player(id, name, GameCard.empty, 0))
   }
