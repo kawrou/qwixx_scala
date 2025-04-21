@@ -7,7 +7,7 @@ import org.scalatest.prop.TableDrivenPropertyChecks
 class PlayerSpec extends AnyFunSpec  with Matchers with TableDrivenPropertyChecks {
   describe("Player") {
     it("should return a player with a name, id, GameCard, and penalty") {
-      val player = Player.newPlayer(1, "Test player").
+      val player = Player(1, "Test player").
         toOption.
         getOrElse(fail("Expected Right but got Left(InvalidName)"))
 
@@ -19,7 +19,7 @@ class PlayerSpec extends AnyFunSpec  with Matchers with TableDrivenPropertyCheck
     }
 
     it("should return an InvalidName error when player name is an empty string") {
-      val result = Player.newPlayer(1, "")
+      val result = Player(1, "")
       result shouldBe Left(InvalidName)
       result match {
         case Left(err) => err.message shouldBe "Player name must be a non-empty string."
