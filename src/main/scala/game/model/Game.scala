@@ -5,7 +5,10 @@ import scala.util.Random
 case class Game(players: List[Player], activePlayerIndex: Int, dice: Dice, isGameOver: Boolean)
 
 object Game {
-  def startWithNames(names: List[String], dice: Dice): Either[String, Game] = {
+  def startWithNames(names: List[String]): Either[String, Game] = {
+    if (names.length < 2) return Left("PlayerQuantityError: There should be a minimum of 2 players")
+    else if (names.length > 5) return Left("PlayerQuantityError: There should be a maximum of 5 players")
+
     val players = names.zipWithIndex.map {
       case (name, i) => Player(id = i, name)
     }
