@@ -4,7 +4,7 @@ import org.scalatest.funspec.AnyFunSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.TableDrivenPropertyChecks
 
-class GameSpec extends AnyFunSpec with Matchers{
+class GameSpec extends AnyFunSpec with Matchers {
   describe("Game:") {
     it("creates an initial game value when passed a list of player names") {
       val playerNamesList = List(
@@ -20,10 +20,10 @@ class GameSpec extends AnyFunSpec with Matchers{
         case (player) => playerNamesList.contains(player.name) shouldBe true
       }
       game.isGameOver shouldBe false
-      game.activePlayerIndex should (be >=1 and be <=4)
+      game.activePlayerIndex should (be >= 1 and be <= 4)
     }
 
-    it("should return Left if there are more than 5 players"){
+    it("should return Left if there are more than 5 players") {
       val playerNamesList = List(
         "player1",
         "player2",
@@ -34,12 +34,17 @@ class GameSpec extends AnyFunSpec with Matchers{
       )
 
       val game = Game.startWithNames(playerNamesList)
-      game.isLeft shouldBe true
+      game shouldBe Left(GameCreationError.TooManyPlayers)
     }
 
-    it("should return Left if there are less than 2 players"){
+    it("should return Left if there are less than 2 players") {
       val game = Game.startWithNames(List("player1"))
-      game.isLeft shouldBe true
+      game shouldBe Left(GameCreationError.NotEnoughPlayers)
+    }
+
+    it("should return Left if a player's name is an empty string") {
+      val game = Game.startWithNames(List("player1", ""))
+      game shouldBe Left(GameCreationError.PlayerError(InvalidName))
     }
   }
 }
