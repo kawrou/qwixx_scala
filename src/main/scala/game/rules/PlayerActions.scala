@@ -26,7 +26,17 @@ private object PlayerAction {
       else if (!game.hasDiceRolled) Left(RollDiceError)
       else Right(game.copy(dice = game.dice.rollAll()))
 
-    case MarkNumber(playerId, color, number) => ???
+    case MarkNumber(playerId, color, number) => {
+      val player = game.players.filter(player => player.id == playerId).head
+      val playerIdx = game.players.indexOf(player)
+      val row = player.gameCard.markNumber(color, number)
+      row match {
+        case Left(err) => Left(MarkNumberError)
+        case Right(gameCard) =>
+          Right(game.copy(game.players.updated(playerIdx, player.copy(gameCard = gameCard))))
+      }
+    }
+
     case TakePenalty(playerId) => ???
     case LockRow(playerId, color) => ???
     case SkipTurn(playerId) => ???
