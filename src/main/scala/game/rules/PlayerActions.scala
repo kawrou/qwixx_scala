@@ -1,6 +1,8 @@
 package game.rules
 
-import game.model.{Game, RowColor}
+import game.model.{Game, Player, RowColor}
+
+import scala.:+
 
 sealed trait PlayerActionError extends Product with Serializable
 
@@ -14,32 +16,72 @@ case object LockRowError extends PlayerActionError
 
 case object SkipTurnError extends PlayerActionError
 
+case object PlayerNotFoundError extends PlayerActionError
+
 
 sealed trait PlayerAction extends Product with Serializable {
-  def applyAction(game: Game): Either[PlayerActionError, Game] = PlayerAction.action(game, this)
+  def applyActionTo(game: Game): Either[PlayerActionError, Game] = PlayerAction.action(game, this)
 }
 
-private object PlayerAction {
-  private def action(game: Game, action: PlayerAction): Either[PlayerActionError, Game] = action match {
+object PlayerAction {
+  def action(game: Game, action: PlayerAction): Either[PlayerActionError, Game] = action match {
     case RollDice(playerId) =>
-      if (game.players(game.activePlayerIndex).id != playerId) Left(RollDiceError)
-      else if (!game.hasDiceRolled) Left(RollDiceError)
-      else Right(game.copy(dice = game.dice.rollAll()))
+      if (game.players(game.activePlayerIndex).id != playerId)
+        Left(RollDiceError)
+      else if (game.hasRolledDice)
+        Left(RollDiceError)
+      else
+        Right(game.copy(dice = game.dice.rollAll()))
 
-    case MarkNumber(playerId, color, number) => {
-      val player = game.players.filter(player => player.id == playerId).head
-      val playerIdx = game.players.indexOf(player)
-      val row = player.gameCard.markNumber(color, number)
-      row match {
-        case Left(err) => Left(MarkNumberError)
-        case Right(gameCard) =>
-          Right(game.copy(game.players.updated(playerIdx, player.copy(gameCard = gameCard))))
+    case MarkNumber(playerId, color, number) =>
+      getPlayer(game, playerId).flatMap { case (player, idx) =>
+        player.gameCard
+          .markNumber(row = color, number = number)
+          .left.map(_ => MarkNumberError)
+          .map { updatedGameCard =>
+            val updatedPlayer = player.copy(gameCard = updatedGameCard)
+            game.copy(players = game.players.updated(idx, updatedPlayer))
+          }
       }
-    }
 
-    case TakePenalty(playerId) => ???
+    //      for {
+    //        result <- getPlayer(game, playerId)
+    //        (player, idx) = result
+    //        updatedGameCard <- player.gameCard
+    //          .markNumber(row = color, number = number)
+    //          .left.map(err => MarkNumberError)
+    //        updatedPlayer = player.copy(gameCard = updatedGameCard)
+    //        updatedGame = game.copy(players = game.players.updated(idx, updatedPlayer))
+    //      } yield updatedGame
+
+
+    case TakePenalty(playerId) =>
+      //      getPlayer(game, playerId).flatMap { case (player, idx) =>
+      //        val updatedPlayer = player.copy(penalty = player.penalty + 1)
+      //        Right(game.copy(players = game.players.updated(idx, updatedPlayer)))
+      //      }
+
+      for {
+        playerTuple <- getPlayer(game, playerId)
+        (player, idx) = playerTuple
+        updatedPlayer = player.copy(penalty = player.penalty + 1)
+      } yield game.copy(players = game.players.updated(idx, updatedPlayer))
+
     case LockRow(playerId, color) => ???
-    case SkipTurn(playerId) => ???
+
+    case SkipTurn(playerId) =>
+      for {
+        playerTuple <- getPlayer(game, playerId)
+        (player, idx) = playerTuple
+        updatedPlayer = player.copy(finishedTurn = true)
+      } yield game.copy(game.players.updated(idx, updatedPlayer))
+  }
+
+  private def getPlayer(game: Game, playerId: Int): Either[PlayerActionError, (Player, Int)] = {
+    game.players.zipWithIndex.find { case (p, _) => p.id == playerId } match {
+      case Some((player, idx)) => Right((player, idx))
+      case None => Left(PlayerNotFoundError)
+    }
   }
 }
 

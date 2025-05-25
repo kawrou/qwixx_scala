@@ -12,7 +12,7 @@ private object PlayerCreationError {
   }
 }
 
-case class Player(id: Int, name: String, gameCard: GameCard, penalty: Int)
+case class Player(id: Int, name: String, gameCard: GameCard, penalty: Int, finishedTurn: Boolean = false)
 
 object Player {
   def apply(id: Int, name: String): Either[PlayerCreationError, Player] = {

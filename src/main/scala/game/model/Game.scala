@@ -20,7 +20,13 @@ private object GameCreationError {
   }
 }
 
-case class Game(players: List[Player], activePlayerIndex: Int, dice: Dice, isGameOver: Boolean, hasDiceRolled: Boolean)
+case class Game(
+                 players: List[Player],
+                 activePlayerIndex: Int,
+                 dice: Dice,
+                 isGameOver: Boolean = false,
+                 hasRolledDice: Boolean = false
+               )
 
 object Game {
   def startWithNames(names: List[String]): Either[GameCreationError, Game] = {
@@ -39,8 +45,6 @@ object Game {
       rights,
       activePlayerIndex = Random.between(1, names.length),
       Dice.apply(),
-      isGameOver = false,
-      hasDiceRolled = false
     )
     )
     //    val result = lefts.headOption.toLeft(rights)

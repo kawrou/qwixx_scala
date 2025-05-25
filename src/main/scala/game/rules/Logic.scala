@@ -3,6 +3,8 @@ package game.rules
 import game.model._
 
 class Logic {
-  GameCard.fromMap(Map())
-  GameCard.empty
+  val game = Game.startWithNames(List("A", "B", "C", "D")) match {
+    case Left(err) => ???
+    case Right(game) => game
+  }
 }
